@@ -42,5 +42,51 @@ CHIP ALU {
         ng; // 1 if (out < 0),  0 otherwise
 
     PARTS:
-   // Put you code here:
+        // X = 0
+        Mux16(a=x, b=false, sel=zx, out=currentX1);
+        Not16(in=currentX1, out=negationX);
+        Mux16(a=currentX1, b=negationX, sel=nx, out=currentX2);
+        
+        // Y = 0
+        Mux16(a=y, b=false, sel=zy, out=currentY1);
+        Not16(in=currentY1, out=negationY);
+        Mux16(a=currentY1, b=negationY, sel=ny, out=currentY2);
+
+        // X + Y
+        Add16(a=currentX2, b=currentY2, out=XplusY);
+        
+        // X & Y
+        And16(a=currentX2, b=currentY2, out=XandY);
+
+        // Current Out : either X + Y or X & Y
+        Mux16(a=XandY, b=XplusY, sel=f, out=currentOut);
+
+        // !out
+        Not16(in=currentOut, out=negationOfCurrentOut);
+        Mux16(
+            a=currentOut, b=negationOfCurrentOut, sel=no, out=out,
+            out[0]=co0, out[1]=co1, out[2]=co2, out[3]=co3, out[4]=co4, out[5]=co5, out[6]=co6, out[7]=co7, out[8]=co8,
+            out[9]=co9, out[10]=co10, out[11]=co11, out[12]=co12, out[13]=co13, out[14]=co14, out[15]=co15
+        );
+
+        // zr
+        Or(a=co0, b=co1, out=orZR1);
+        Or(a=orZR1, b=co2, out=orZR2);
+        Or(a=orZR2, b=co3, out=orZR3);
+        Or(a=orZR3, b=co4, out=orZR4);
+        Or(a=orZR4, b=co5, out=orZR5);
+        Or(a=orZR5, b=co6, out=orZR6);
+        Or(a=orZR6, b=co7, out=orZR7);
+        Or(a=orZR7, b=co8, out=orZR8);
+        Or(a=orZR8, b=co9, out=orZR9);
+        Or(a=orZR9, b=co10, out=orZR10);
+        Or(a=orZR10, b=co11, out=orZR11);
+        Or(a=orZR11, b=co12, out=orZR12);
+        Or(a=orZR12, b=co13, out=orZR13);
+        Or(a=orZR13, b=co14, out=orZR14);
+        Or(a=orZR14, b=co15, out=zrOut);
+        Mux(a=true, b=false, sel=zrOut, out=zr);
+        
+        // ng
+        Mux(a=false, b=true, sel=co15, out=ng);
 }

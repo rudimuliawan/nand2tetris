@@ -12,3 +12,53 @@
 // the screen should remain fully clear as long as no key is pressed.
 
 // Put your code here.
+(BEGIN)
+    @SCREEN
+    D=A
+
+    @PIXEL_POSITION
+    M=D
+
+    @KBD
+    D=M
+
+    @WHITE
+    D; JEQ
+
+    @BLACK
+    0; JMP
+
+(BLACK)
+    @KBD_INPUT
+    M=-1
+
+    @LOOP
+    0; JMP
+
+(WHITE)
+    @KBD_INPUT
+    M=0
+
+    @LOOP
+    0; JMP
+
+(LOOP)
+    @KBD_INPUT
+    D=M
+
+    @PIXEL_POSITION
+    A=M
+    M=D
+
+    @PIXEL_POSITION
+    M=M+1
+    D=M
+
+    @KBD
+    D=D-A
+
+    @BEGIN
+    D; JEQ
+
+    @LOOP
+    0; JMP

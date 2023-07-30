@@ -39,5 +39,46 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    
+    Not(in=instruction[15], out=AInstruction);
+    Not(in=AInstruction, out=CInstruction);
+
+    // A Register
+    // Load to A only if it's an A-instruction or instruction[12] == 0
+    Mux16(a=outALU, b=instruction, sel=AInstruction, out=aRegisterIn);
+    Or(a=AInstruction, b=instruction[5], out=loadA);
+    ARegister(in=aRegisterIn, load=loadA, out=outARegister, out[0..14]=addressM);
+
+    // D Register
+    // Load to D only if it's a C instruction or instruction[4] == 1
+    And(a=CInstruction, b=instruction[4], out=loadD);
+    DRegister(in=outALU, load=loadD, out=outDRegister);
+
+    // Pre ALU
+    Mux16(a=outARegister, b=inM, sel=instruction[12], out=outPreALU);
+
+    // ALU
+    ALU(
+        x=outDRegister, y=outPreALU, 
+        zx=instruction[11], nx=instruction[10], zy=instruction[9], 
+        ny=instruction[8], f=instruction[7], no=instruction[6], 
+        out=outALU, out=outM, zr=isZero, ng=isNegative
+    );
+
+    // writeM
+    And(a=CInstruction, b=instruction[3], out=writeM);
+
+    // PC
+    Or(a=isZero, b=isNegative, out=preIsPositive);
+    Not(in=preIsPositive, out=isPositive);
+
+    And(a=instruction[2], b=isNegative, out=jumpIfNegative);
+    And(a=instruction[1], b=isZero, out=jumpIfZero);
+    And(a=instruction[0], b=isPositive, out=jumpIfPositive);
+
+    Or(a=jumpIfNegative, b=jumpIfZero, out=jumpIfPositiveOrZero);
+    Or(a=jumpIfPositiveOrZero, b=jumpIfPositive, out=j123);
+
+    And(a=instruction[15], b=j123, out=jump);
+
+    PC(in=outARegister, load=jump, inc=true, reset=reset, out[0..14]=pc);
 }
